@@ -1,0 +1,73 @@
+﻿@model IEnumerable<AdaptiveIT.Models.TestAttempt>
+
+@{
+    ViewData["Title"] = "Статистика тесту";
+    double avgScore = Model.Any() ? Math.Round(Model.Average(a => a.FinalScore), 1) : 0;
+}
+
+<div class="d-flex justify-content-between align-items-center mt-4 mb-4 animate-fade-up">
+    <div>
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary mb-3 rounded-pill px-3">← Назад до тестів</a>
+        <h2 class="fw-bold text-white mb-1">Статистика: @ViewBag.TestTitle</h2>
+    </div>
+    <div class="badge badge-soft-success fs-4 px-4 py-3 rounded-3 shadow-sm border border-success">Середній бал: @avgScore%</div>
+</div>
+
+<div class="card card-modern border-0 animate-fade-up delay-100">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0" style="--bs-table-bg: transparent; --bs-table-color: var(--text-main); --bs-table-border-color: var(--border-color);">
+                <thead style="background-color: rgba(255,255,255,0.02);">
+                    <tr>
+                        <th class="text-uppercase small text-muted px-4 py-3">Студент</th>
+                        <th class="text-uppercase small text-muted py-3">Дата проходження</th>
+                        <th class="text-uppercase small text-muted py-3">Час</th>
+                        <th class="text-uppercase small text-muted py-3">Результат</th>
+                        <th class="text-end px-4 py-3">Дії</th>
+                    </tr>
+                </thead>
+                <tbody class="table-group-divider" style="border-top-color: var(--border-color);">
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="5" class="text-center py-5 text-muted">Ще ніхто не завершив цей тест.</td></tr>
+                    }
+                    else
+                    {
+                        foreach (var attempt in Model)
+                        {
+                            <tr class="table-hover">
+                                <td class="px-4 py-3 fw-bold text-white">@attempt.Student?.FullName</td>
+                                <td class="small text-muted">@attempt.EndTime?.ToString("dd.MM.yyyy HH:mm")</td>
+                                <td>
+                                    @if (attempt.EndTime.HasValue)
+                                    {
+                                        <span class="badge" style="background-color: var(--background); border: 1px solid var(--border-color); color: var(--text-muted);">
+                                            @Math.Round((attempt.EndTime.Value - attempt.StartTime).TotalMinutes, 1) хв.
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (attempt.RequiresManualGrading)
+                                    {
+                                        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill">⏳ Очікує перевірки</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge @(attempt.FinalScore >= 50 ? "badge-soft-success" : "badge-soft-danger") px-3 py-2 rounded-pill">
+                                            @attempt.FinalScore%
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-end px-4 py-3">
+                                    <a asp-action="ReviewAttempt" asp-route-attemptId="@attempt.Id" class="btn btn-sm @(attempt.RequiresManualGrading ? "btn-primary-modern" : "btn-outline-secondary") fw-bold rounded-pill px-3">
+                                        @(attempt.RequiresManualGrading ? "🔍 Перевірити" : "✏️ Змінити бали")
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,108 @@
+﻿@{
+    ViewData["Title"] = "Головна";
+}
+
+<div class="py-5 mt-4 mb-5 rounded-4 shadow-lg animate-fade-up" style="background: linear-gradient(145deg, var(--surface) 0%, var(--background) 100%); border: 1px solid var(--border-color);">
+    <div class="container py-5 text-center">
+
+        <h1 class="display-4 fw-bold mb-4 text-white">Адаптивна система інтелектуального тестування</h1>
+        <p class="lead mx-auto mb-5" style="max-width: 750px; color: var(--text-muted);">
+            Платформа для точної оцінки знань студентів в ІТ-сфері за допомогою динамічного алгоритму підбору складності та інтерактивних графічних завдань.
+        </p>
+
+        <div class="d-flex justify-content-center gap-3">
+            @if (User.Identity!.IsAuthenticated)
+            {
+                <a asp-controller="Student" asp-action="Index" class="btn btn-primary-modern btn-lg px-4 shadow-sm py-3">
+                    🎰 Мої тести
+                </a>
+                @if (User.IsInRole("Teacher") || User.IsInRole("Admin"))
+                {
+                    <a asp-controller="Tests" asp-action="Index" class="btn btn-outline-light btn-lg px-4 py-3" style="border-color: var(--border-color); color: var(--text-main);">
+                        Панель викладача
+                    </a>
+                }
+            }
+            else
+            {
+                <a asp-controller="Account" asp-action="Register" class="btn btn-primary-modern btn-lg px-4 shadow-sm py-3">
+                    Почати використання
+                </a>
+                <a asp-controller="Account" asp-action="Login" class="btn btn-outline-light btn-lg px-4 py-3" style="border-color: var(--border-color); color: var(--text-main);">
+                    Увійти до акаунту
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="text-center mb-5 animate-fade-up delay-100">
+        <h2 class="fw-bold text-white">Ключові можливості платформи</h2>
+        <p style="color: var(--text-muted);">Технології, які роблять процес зрізу знань ефективним та сучасним</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4 animate-fade-up delay-100">
+            <div class="card card-modern h-100 text-center p-4 border-0" style="background-color: var(--surface);">
+                <div class="card-body">
+                    <div class="fs-1 mb-3">🧠</div>
+                    <h5 class="card-title fw-bold text-white">Адаптивна складність</h5>
+                    <p class="card-text small mt-3" style="color: var(--text-muted);">
+                        Інтелектуальний двигун аналізує кожну відповідь студента. Правильна відповідь підвищує рівень наступного питання, а помилка — знижує її для точного визначення реального Skill Level.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 animate-fade-up delay-200">
+            <div class="card card-modern h-100 text-center p-4 border-0" style="background-color: var(--surface);">
+                <div class="card-body">
+                    <div class="fs-1 mb-3">🎯</div>
+                    <h5 class="card-title fw-bold text-white">Графічний Drag-and-Drop</h5>
+                    <p class="card-text small mt-3" style="color: var(--text-muted);">
+                        Забудьте про нудні тести. Студенти взаємодіють із реальними схемами архітектури, діаграмами та блоками коду, перетягуючи пропущені елементи мишкою на зображенні-завданні.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 animate-fade-up delay-300">
+            <div class="card card-modern h-100 text-center p-4 border-0" style="background-color: var(--surface);">
+                <div class="card-body">
+                    <div class="fs-1 mb-3">🔑</div>
+                    <h5 class="card-title fw-bold text-white">Гнучке керування доступом</h5>
+                    <p class="card-text small mt-3" style="color: var(--text-muted);">
+                        Викладач може відкривати тести для цілих академічних груп, персональних списків студентів або генерувати унікальні коди доступу для швидкого приєднання до тестування.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="py-5 rounded-4 mb-4 animate-fade-up delay-200" style="background-color: var(--surface); border: 1px solid var(--border-color);">
+    <div class="container text-center px-4">
+        <h3 class="fw-bold mb-5 text-white">Алгоритм проходження тесту</h3>
+        <div class="row position-relative">
+            <div class="col-md-3 mb-4 mb-md-0">
+                <div class="fw-bold fs-2 mb-2" style="color: var(--primary);">01</div>
+                <h6 class="text-white fw-bold">Вхід за кодом / групою</h6>
+                <p class="small mt-2" style="color: var(--text-muted);">Студент обирає тест у кабінеті або вводить індивідуальний ключ доступу.</p>
+            </div>
+            <div class="col-md-3 mb-4 mb-md-0">
+                <div class="fw-bold fs-2 mb-2" style="color: var(--primary);">02</div>
+                <h6 class="text-white fw-bold">Стартовий баланс</h6>
+                <p class="small mt-2" style="color: var(--text-muted);">Тест починається із базового питання середнього рівня складності.</p>
+            </div>
+            <div class="col-md-3 mb-4 mb-md-0">
+                <div class="fw-bold fs-2 mb-2" style="color: var(--primary);">03</div>
+                <h6 class="text-white fw-bold">Динамічний підбір</h6>
+                <p class="small mt-2" style="color: var(--text-muted);">Нейроподібна логіка змінює вектор генерації питань на основі успішності.</p>
+            </div>
+            <div class="col-md-3">
+                <div class="fw-bold fs-2 mb-2" style="color: var(--primary);">04</div>
+                <h6 class="text-white fw-bold">Глибока аналітика</h6>
+                <p class="small mt-2" style="color: var(--text-muted);">Викладач отримує повний графік спроб, витрачений час та зріз помилок.</p>
+            </div>
+        </div>
+    </div>
+</div>

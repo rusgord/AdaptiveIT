@@ -1,0 +1,86 @@
+﻿@model AdaptiveIT.Models.ViewModels.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Реєстрація";
+}
+
+<div class="row justify-content-center mt-5 mb-5">
+    <div class="col-md-7">
+        <div class="card card-modern border-0 animate-fade-up">
+            <div class="card-body p-4 p-md-5">
+
+                <div class="text-center mb-4">
+                    <div class="fs-1 mb-2">👋</div>
+                    <h3 class="fw-bold">Створити акаунт</h3>
+                    <p class="text-muted small">Приєднуйтесь до AdaptiveIT для проходження тестувань та перевірки знань.</p>
+                </div>
+
+                <form asp-action="Register" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                    <div class="mb-4">
+                        <label asp-for="FullName" class="form-label text-muted small fw-bold text-uppercase">ПІБ (Повне ім'я)</label>
+                        <input asp-for="FullName" class="form-control form-control-lg shadow-none" style="background-color: var(--background); border-color: var(--border-color); color: var(--text-main);" placeholder="Наприклад: Іван Іванов" />
+                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-bold text-uppercase mb-3">Оберіть вашу роль</label>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <input type="radio" asp-for="Role" value="Student" class="btn-check" id="roleStudent" autocomplete="off" checked>
+                                <label class="btn w-100 p-3 rounded-4 shadow-sm" for="roleStudent" style="background-color: var(--background); border: 2px solid var(--border-color); color: var(--text-main); transition: all 0.2s;">
+                                    <div class="fs-2 mb-2">👨‍🎓</div>
+                                    <div class="fw-bold">Студент</div>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <input type="radio" asp-for="Role" value="Teacher" class="btn-check" id="roleTeacher" autocomplete="off">
+                                <label class="btn w-100 p-3 rounded-4 shadow-sm" for="roleTeacher" style="background-color: var(--background); border: 2px solid var(--border-color); color: var(--text-main); transition: all 0.2s;">
+                                    <div class="fs-2 mb-2">👨‍🏫</div>
+                                    <div class="fw-bold">Викладач</div>
+                                </label>
+                            </div>
+                        </div>
+                        <span asp-validation-for="Role" class="text-danger small mt-2 d-block"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Email" class="form-label text-muted small fw-bold text-uppercase">Email адреса</label>
+                        <input asp-for="Email" class="form-control form-control-lg shadow-none" style="background-color: var(--background); border-color: var(--border-color); color: var(--text-main);" placeholder="name@example.com" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Password" class="form-label text-muted small fw-bold text-uppercase">Пароль</label>
+                            <input asp-for="Password" class="form-control form-control-lg shadow-none" style="background-color: var(--background); border-color: var(--border-color); color: var(--text-main);" placeholder="••••••••" />
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="ConfirmPassword" class="form-label text-muted small fw-bold text-uppercase">Підтвердження пароля</label>
+                            <input asp-for="ConfirmPassword" class="form-control form-control-lg shadow-none" style="background-color: var(--background); border-color: var(--border-color); color: var(--text-main);" placeholder="••••••••" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-2">
+                        <button type="submit" class="btn btn-primary-modern btn-lg py-3 shadow-sm">Зареєструватися</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card-footer bg-transparent border-top text-center py-4" style="border-color: var(--border-color) !important;">
+                <div class="small text-muted">
+                    Вже є акаунт? <a asp-action="Login" style="color: var(--primary); text-decoration: none; font-weight: 600;">Увійти до системи</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

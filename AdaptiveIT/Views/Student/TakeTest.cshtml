@@ -1,0 +1,358 @@
+﻿@model AdaptiveIT.Models.Question
+@using AdaptiveIT.Models
+
+@{
+    ViewData["Title"] = "Тестування";
+    int attemptId = ViewBag.AttemptId;
+    int totalQuestions = ViewBag.TotalQuestions;
+    int currentQuestionIndex = ViewBag.CurrentQuestionIndex;
+
+    int progressPercent = (int)((double)(currentQuestionIndex - 1) / totalQuestions * 100);
+}
+
+<div class="container mt-4 mb-5">
+    <div class="row mb-4 animate-fade-up">
+        <div class="col-md-9 mx-auto">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="fw-bold text-uppercase small" style="color: var(--text-muted); letter-spacing: 1px;">Питання @currentQuestionIndex / @totalQuestions</span>
+                <span class="badge badge-soft-primary px-3 py-2 rounded-pill fs-6 shadow-sm border border-primary border-opacity-25">Рівень: @Model.DifficultyLevel / 10</span>
+            </div>
+
+            <div class="progress rounded-pill shadow-sm mb-3" style="height: 8px; background-color: rgba(255,255,255,0.1);">
+                <div class="progress-bar rounded-pill" style="background-color: var(--primary); width: @progressPercent%; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);" role="progressbar"></div>
+            </div>
+
+            @if (ViewBag.SecondsLeft > 0)
+            {
+                <div class="text-end">
+                    <div class="badge px-4 py-2 rounded-pill shadow-sm" style="background-color: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.2);">
+                        ⏳ Залишилось: <span id="timerSpan" class="fw-bold text-white">--:--</span>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="row animate-fade-up delay-100">
+        <div class="col-md-9 mx-auto">
+            <div class="card card-modern border-0 mb-4 p-md-2 shadow-lg" style="background-color: var(--surface); border: 1px solid rgba(255,255,255,0.05) !important;">
+                <div class="card-body p-4 p-md-5">
+                    <h3 class="card-title mb-5 fw-bold text-white lh-base">@Model.Text</h3>
+                    @if (!string.IsNullOrEmpty(Model.ImageUrl) && Model.Type != QuestionType.GraphicDragAndDrop)
+                    {
+                        <div class="text-center mb-5 p-3 rounded-3" style="background-color: rgba(255,255,255,0.02); border: 1px dashed var(--border-color);">
+                            <img src="@Model.ImageUrl" class="img-fluid rounded shadow-sm" style="max-height: 400px; object-fit: contain;" alt="Ілюстрація до питання" />
+                        </div>
+                    }
+                    <form asp-action="SubmitAnswer" method="post" id="testForm">
+                        <input type="hidden" name="attemptId" value="@attemptId" />
+                        <input type="hidden" name="questionId" value="@Model.Id" />
+
+
+                        @{
+                            var displayOptions = Model.AnswerOptions?.ToList() ?? new List<AnswerOption>();
+                            if (Model.Test != null && Model.Test.ShuffleAnswers && (Model.Type == QuestionType.SingleChoice || Model.Type == QuestionType.MultipleChoice))
+                            {
+                                displayOptions = displayOptions.OrderBy(x => Guid.NewGuid()).ToList();
+                            }
+                        }
+
+                        @if (Model.Type == QuestionType.SingleChoice)
+                        {
+                            <div class="list-group gap-3">
+                                @foreach (var option in displayOptions)
+                                {
+                                    <label class="list-group-item list-group-item-action d-flex align-items-center p-4 rounded-3 shadow-sm" style="cursor: pointer; background-color: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); color: var(--text-main); transition: all 0.2s;">
+                                        <input class="form-check-input me-4 fs-4 shadow-none mt-0" type="radio" name="selectedOptions" value="@option.Id" style="background-color: var(--background); border-color: rgba(255,255,255,0.2);" required />
+                                        <span class="fs-5">@option.Text</span>
+                                    </label>
+                                }
+                            </div>
+                        }
+
+                        else if (Model.Type == QuestionType.MultipleChoice)
+                        {
+                            <div class="alert badge-soft-primary border-0 small mb-4 py-2 rounded-3">💡 Може бути декілька правильних відповідей.</div>
+                            <div class="list-group gap-3">
+                                @foreach (var option in displayOptions)
+                                {
+                                    <label class="list-group-item list-group-item-action d-flex align-items-center p-4 rounded-3 shadow-sm" style="cursor: pointer; background-color: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); color: var(--text-main); transition: all 0.2s;">
+                                        <input class="form-check-input me-4 fs-4 shadow-none mt-0" type="checkbox" name="selectedOptions" value="@option.Id" style="background-color: var(--background); border-color: rgba(255,255,255,0.2);" />
+                                        <span class="fs-5">@option.Text</span>
+                                    </label>
+                                }
+                            </div>
+                        }
+
+                        else if (Model.Type == QuestionType.ShortAnswer)
+                        {
+                            <div class="alert border-0 small mb-4 py-2 rounded-3" style="background-color: rgba(245, 158, 11, 0.1); color: #fcd34d;">💡 Введіть правильну відповідь у текстове поле нижче.</div>
+                            <div class="mb-3">
+                                <input type="text" name="shortAnswerText" class="form-control form-control-lg shadow-none py-3" style="background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: #ffffff; font-size: 1.1rem;" placeholder="Ваша відповідь..." autocomplete="off" required />
+                            </div>
+                        }
+
+                        else if (Model.Type == QuestionType.LongAnswer)
+                        {
+                            <div class="alert badge-soft-primary border-0 small mb-4 py-2 rounded-3">
+                                👨‍🏫 <b>Ручна перевірка:</b> Напишіть розгорнуту відповідь або вставте код.
+                            </div>
+                            <div class="mb-3">
+                                <textarea name="longAnswerText" class="form-control shadow-none font-monospace p-4" rows="12" style="background-color: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #38bdf8; font-size: 1.05rem; resize: vertical;" placeholder="// Введіть вашу відповідь або код тут..." required></textarea>
+                            </div>
+                        }
+
+                        else if (Model.Type == QuestionType.Ordering)
+                        {
+                            <div class="alert badge-soft-primary border-0 small mb-4 py-2 rounded-3">
+                                💡 Затисніть елемент мишкою і перетягніть, щоб розставити їх у правильному порядку.
+                            </div>
+                            var shuffledOptions = Model.AnswerOptions!.OrderBy(g => Guid.NewGuid()).ToList();
+                            <input type="hidden" name="orderedIds" id="orderedIds" value="" />
+
+                            <ul id="sortableList" class="list-group gap-2">
+                                @foreach (var option in shuffledOptions)
+                                {
+                                    <li class="list-group-item p-4 fs-5 d-flex align-items-center sortable-item rounded-3 shadow-sm"
+                                        draggable="true"
+                                        data-id="@option.Id"
+                                        style="background-color: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); color: var(--text-main); cursor: grab; transition: transform 0.2s;">
+                                        <span class="me-4 text-muted fs-4">☰</span>
+                                        @option.Text
+                                    </li>
+                                }
+                            </ul>
+                        }
+
+                        else if (Model.Type == QuestionType.TextMatch)
+                        {
+                            <div class="alert badge-soft-primary border-0 small mb-4 py-2 rounded-3">💡 Встановіть правильну відповідність для кожного елемента.</div>
+                            var shuffledTargets = Model.AnswerOptions!.Select(a => a.MatchTarget).OrderBy(g => Guid.NewGuid()).ToList();
+
+                            <div class="row g-4 align-items-center p-3 rounded-3" style="background-color: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                                @foreach (var option in Model.AnswerOptions!)
+                                {
+                                    <div class="col-md-6 d-flex align-items-center">
+                                        <span class="fs-5 fw-semibold text-white">@option.Text</span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <select name="match_@option.Id" class="form-select form-select-lg shadow-none" style="background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: #ffffff;" required>
+                                            <option value="" style="color: black;">-- Оберіть відповідність --</option>
+                                            @foreach (var target in shuffledTargets)
+                                            {
+                                                <option value="@target" style="color: black;">@target</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-12"><hr class="my-1 border-secondary opacity-25" /></div>
+                                }
+                            </div>
+                        }
+
+                        else if (Model.Type == QuestionType.GraphicDragAndDrop)
+                        {
+                            <input type="hidden" name="graphicResult" id="graphicResult" value="false" />
+
+                            <div class="text-center mb-5">
+                                <div id="studentImageWrapper" class="d-inline-block position-relative rounded-3 p-2 shadow-lg" style="background-color: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); user-select: none;">
+                                    <img src="@Model.ImageUrl" class="img-fluid rounded" style="max-height: 450px;" draggable="false" />
+
+                                    @if (Model.GraphicMatchZones != null)
+                                    {
+                                        foreach (var zone in Model.GraphicMatchZones)
+                                        {
+                                            <div class="student-drop-zone d-flex align-items-center justify-content-center text-center p-1 shadow-sm"
+                                                 data-correct-fragment="@zone.CorrectFragment"
+                                                 style="position: absolute;
+                                                left: @zone.PositionX%; top: @zone.PositionY%; width: @zone.Width%; height: @zone.Height%;
+                                                border: 2px dashed var(--primary);
+                                                background-color: rgba(99, 102, 241, 0.2);
+                                                transform: translate(-50%, -50%);
+                                                font-size: 13px; font-weight: bold; color: white;
+                                                border-radius: 8px; backdrop-filter: blur(2px); transition: all 0.2s;">
+                                                ??
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            </div>
+
+                            var shuffledFragments = Model.GraphicMatchZones!.Select(z => z.CorrectFragment).OrderBy(g => Guid.NewGuid()).ToList();
+                            <div class="p-4 rounded-4" style="background-color: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.1);">
+                                <h6 class="text-center mb-4 text-uppercase small fw-bold" style="color: var(--text-muted); letter-spacing: 1px;">Перетягніть блоки мишкою у відповідні рамки:</h6>
+                                <div class="d-flex flex-wrap justify-content-center gap-3" id="dragItemsContainer">
+                                    @foreach (var fragment in shuffledFragments)
+                                    {
+                                        <div class="btn btn-primary-modern student-drag-item shadow-sm fw-mono px-4 py-2 fs-6"
+                                             draggable="true"
+                                             data-fragment-text="@fragment"
+                                             style="cursor: grab; border: 1px solid rgba(255,255,255,0.2);">
+                                            @fragment
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        <div class="d-grid mt-5 pt-3 border-top" style="border-color: rgba(255,255,255,0.05) !important;">
+                            <button type="submit" class="btn btn-primary-modern btn-lg fw-bold py-3 fs-5 shadow-lg mt-4" style="background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%); border: none;" id="btnSubmitAnswer">
+                                Підтвердити відповідь →
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let secondsLeft = parseInt('@ViewBag.SecondsLeft');
+        let formIsDirty = false;
+
+        window.addEventListener('beforeunload', function (e) {
+            if (formIsDirty) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+
+        if (!isNaN(secondsLeft) && secondsLeft > 0) {
+            const timerSpan = document.getElementById('timerSpan');
+            const interval = setInterval(function() {
+                secondsLeft--;
+                let m = Math.floor(secondsLeft / 60);
+                let s = secondsLeft % 60;
+                timerSpan.innerText = m + ":" + (s < 10 ? '0' : '') + s;
+
+                if (secondsLeft <= 0) {
+                    clearInterval(interval);
+                    formIsDirty = false;
+                    alert('Час вийшов! Ваш тест буде автоматично завершено.');
+                    document.getElementById('testForm').submit();
+                }
+            }, 1000);
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            document.querySelectorAll('input, textarea, select').forEach(el => {
+                el.addEventListener('input', () => formIsDirty = true);
+                el.addEventListener('change', () => formIsDirty = true);
+            });
+
+            document.querySelectorAll('.student-drag-item').forEach(item => {
+                item.addEventListener('dragstart', function (e) {
+                    const text = this.getAttribute('data-fragment-text');
+                    e.dataTransfer.setData('text/plain', text);
+                    e.dataTransfer.effectAllowed = 'copyMove';
+                    this.style.opacity = '0.5';
+                });
+                item.addEventListener('dragend', function () {
+                    this.style.opacity = '1';
+                });
+            });
+
+            document.querySelectorAll('.student-drop-zone').forEach(zone => {
+                zone.addEventListener('dragenter', function (e) { e.preventDefault(); });
+                zone.addEventListener('dragover', function (e) {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'copy';
+                    this.style.backgroundColor = 'rgba(99, 102, 241, 0.5)';
+                    this.style.borderColor = '#ffffff';
+                });
+                zone.addEventListener('dragleave', function () {
+                    if (this.getAttribute('data-user-answer')) {
+                        this.style.backgroundColor = 'var(--primary)';
+                    } else {
+                        this.style.backgroundColor = 'rgba(99, 102, 241, 0.2)';
+                    }
+                    this.style.borderColor = 'var(--primary)';
+                });
+                zone.addEventListener('drop', function (e) {
+                    e.preventDefault();
+                    const text = e.dataTransfer.getData('text/plain');
+                    if (!text) return;
+
+                    this.innerText = text;
+                    this.style.backgroundColor = 'var(--primary)';
+                    this.style.color = '#ffffff';
+                    this.style.borderColor = 'var(--primary)';
+                    this.style.borderStyle = 'solid';
+                    this.setAttribute('data-user-answer', text);
+
+                    formIsDirty = true;
+                });
+            });
+
+            const sortableList = document.getElementById('sortableList');
+            if (sortableList) {
+                let draggedLi = null;
+                document.querySelectorAll('.sortable-item').forEach(li => {
+                    li.addEventListener('dragstart', function (e) {
+                        draggedLi = this;
+                        this.style.opacity = '0.4';
+                        this.style.borderColor = 'var(--primary)';
+                    });
+
+                    li.addEventListener('dragend', function () {
+                        this.style.opacity = '1';
+                        this.style.borderColor = 'rgba(255,255,255,0.1)';
+                        draggedLi = null;
+
+                        formIsDirty = true;
+                    });
+
+                    li.addEventListener('dragover', function (e) {
+                        e.preventDefault();
+                        if (draggedLi === this) return;
+                        const bounding = this.getBoundingClientRect();
+                        const offset = e.clientY - bounding.top;
+                        if (offset > bounding.height / 2) {
+                            this.after(draggedLi);
+                        } else {
+                            this.before(draggedLi);
+                        }
+                    });
+                });
+            }
+
+            const form = document.getElementById('testForm');
+            if (form) {
+                form.addEventListener('submit', function (e) {
+                    formIsDirty = false;
+
+                    const listItems = document.querySelectorAll('#sortableList .sortable-item');
+                    if (listItems.length > 0) {
+                        const ids = Array.from(listItems).map(li => li.getAttribute('data-id'));
+                        document.getElementById('orderedIds').value = ids.join(',');
+                    }
+
+                    const dropZones = document.querySelectorAll('.student-drop-zone');
+                    if (dropZones.length > 0) {
+                        let allCorrect = true;
+                        let totalAnswered = 0;
+
+                        dropZones.forEach(zone => {
+                            const userAnswer = zone.getAttribute('data-user-answer');
+                            const correctAnswer = zone.getAttribute('data-correct-fragment');
+                            if (userAnswer) totalAnswered++;
+                            if (userAnswer !== correctAnswer) allCorrect = false;
+                        });
+
+                        if (totalAnswered < dropZones.length) {
+                            e.preventDefault();
+                            alert('Будь ласка, перетягніть блоки в усі порожні зони на зображенні перед відправкою!');
+
+                            formIsDirty = true;
+                            return;
+                        }
+
+                        document.getElementById('graphicResult').value = allCorrect ? "true" : "false";
+                    }
+                });
+            }
+        });
+    </script>
+}

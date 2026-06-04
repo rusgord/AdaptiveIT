@@ -1,0 +1,235 @@
+﻿@model AdaptiveIT.Models.ViewModels.ProfileViewModel
+@using AdaptiveIT.Models
+
+@{
+    ViewData["Title"] = "Мій профіль";
+    var activeTab = ViewBag.ActiveTab as string ?? "info";
+    var history = ViewBag.History as List<TestAttempt> ?? new List<TestAttempt>();
+}
+
+<div class="container mt-5 mb-5">
+    <div class="row">
+        <div class="col-md-4 text-center mb-4 animate-fade-up">
+            <div class="card card-modern border-0 py-5">
+                <div class="card-body">
+                    <div class="mb-4 position-relative d-inline-block">
+                        <img src="@Model.AvatarUrl" class="rounded-circle img-thumbnail shadow-sm p-1" style="width: 150px; height: 150px; object-fit: cover; background-color: var(--border-color); border-color: var(--border-color);" alt="Avatar" />
+                    </div>
+                    <h4 class="fw-bold mb-1 text-white">@Model.FullName</h4>
+                    <p class="small mb-3" style="color: var(--text-muted);">@Model.Email</p>
+                    <span class="badge badge-soft-primary px-3 py-2 fs-6 rounded-pill">Студент</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8 animate-fade-up delay-100">
+            <div class="card card-modern border-0">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0 px-4">
+                    <ul class="nav nav-pills gap-2" id="profileTabs" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link @(activeTab == "info" ? "active" : "") fw-bold rounded-pill px-4"
+                                    id="info-tab" data-bs-toggle="tab" data-bs-target="#infoPane" type="button" role="tab">
+                                👤 Особисті дані
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link @(activeTab == "password" ? "active" : "") fw-bold rounded-pill px-4"
+                                    id="password-tab" data-bs-toggle="tab" data-bs-target="#passwordPane" type="button" role="tab">
+                                🔒 Зміна пароля
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link fw-bold rounded-pill px-4"
+                                    id="stats-tab" data-bs-toggle="tab" data-bs-target="#statsPane" type="button" role="tab">
+                                📊 Моя статистика (@history.Count)
+                            </button>
+                        </li>
+                    </ul>
+                    <hr class="mt-4 mb-0" style="border-color: var(--border-color);" />
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <div class="tab-content" id="profileTabsContent">
+
+                        <div class="tab-pane fade @(activeTab == "info" ? "show active" : "")" id="infoPane" role="tabpanel">
+                            @if (TempData["ProfileSuccess"] != null)
+                            {
+                                <div class="alert alert-success small border-0 rounded-3" style="background-color: rgba(16, 185, 129, 0.1); color: #10b981;">✅ @TempData["ProfileSuccess"]</div>
+                            }
+                            @if (TempData["ProfileError"] != null)
+                            {
+                                <div class="alert alert-danger small border-0 rounded-3" style="background-color: rgba(239, 68, 68, 0.1); color: #ef4444;">❌ @TempData["ProfileError"]</div>
+                            }
+
+                            <div class="mb-5 p-4 rounded-4" style="background-color: rgba(255,255,255,0.02); border: 1px dashed var(--border-color);">
+                                <label class="form-label text-muted small fw-bold text-uppercase mb-3">Академічна група</label>
+
+                                @if (Model.GroupId.HasValue && Model.Group != null)
+                                {
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="fs-1">🎓</div>
+                                            <div>
+                                                <h5 class="mb-0 text-white fw-bold">@Model.Group.Name</h5>
+                                                <small style="color: var(--text-muted);">Ви є учасником цієї групи</small>
+                                            </div>
+                                        </div>
+                                        <form asp-action="LeaveGroup" method="post" onsubmit="return confirm('Ви впевнені, що хочете покинути групу? Ви можете втратити доступ до деяких тестів.');">
+                                            <button type="submit" class="btn btn-outline-danger rounded-pill px-4">Вийти з групи</button>
+                                        </form>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="alert border-0 small mb-3 rounded-3" style="background-color: rgba(99, 102, 241, 0.1); color: #818cf8;">
+                                        💡 Щоб приєднатися до групи, введіть код запрошення, який надав викладач.
+                                    </div>
+                                    <form asp-action="JoinGroup" method="post" class="d-flex gap-2">
+                                        <input type="text" name="inviteCode" class="form-control form-control-lg shadow-none" style="background-color: var(--background); border: 1px solid var(--border-color); color: var(--text-main);" placeholder="Наприклад: GRP-2026-XYZ" required />
+                                        <button type="submit" class="btn btn-primary-modern px-4 fw-bold">Приєднатися</button>
+                                    </form>
+                                }
+                            </div>
+
+                            <form asp-action="UpdateInfo" method="post" enctype="multipart/form-data">
+                                <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                                <div class="mb-4">
+                                    <label asp-for="FullName" class="form-label text-muted small fw-bold text-uppercase">Повне ім'я (ПІБ)</label>
+                                    <input asp-for="FullName" class="form-control form-control-lg shadow-none" style="background-color: var(--background); border-color: var(--border-color); color: var(--text-main);" />
+                                    <span asp-validation-for="FullName" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label text-muted small fw-bold text-uppercase">Електронна пошта (не змінюється)</label>
+                                    <input asp-for="Email" class="form-control form-control-lg shadow-none opacity-75" style="background-color: var(--background); border-color: var(--border-color); color: var(--text-muted);" readonly />
+                                </div>
+
+                                <div class="mb-5">
+                                    <label asp-for="AvatarFile" class="form-label text-muted small fw-bold text-uppercase">Змінити аватарку</label>
+
+                                    <div id="dropZone" class="p-4 text-center rounded-4 position-relative"
+                                         style="border: 2px dashed var(--border-color); background-color: rgba(255,255,255,0.01); cursor: pointer; transition: all 0.3s;">
+
+                                        <div id="previewContainer" class="d-none mb-3">
+                                            <img id="imagePreview" src="" class="rounded-circle img-thumbnail shadow-sm p-1" style="width: 120px; height: 120px; object-fit: cover; background-color: var(--border-color); border-color: var(--border-color);" alt="New Avatar Preview" />
+                                        </div>
+
+                                        <div id="uploadPlaceholder">
+                                            <div class="fs-1 mb-2">👤</div>
+                                            <p class="mb-1 text-white fw-bold">Натисніть, перетягніть або вставте фото (Ctrl+V)</p>
+                                            <small style="color: var(--text-muted);">Підтримуються формати PNG, JPG</small>
+                                        </div>
+
+                                        <input asp-for="AvatarFile" id="uploadFile" class="d-none" accept="image/*" />
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary-modern px-5 py-2">Зберегти профіль</button>
+                            </form>
+                        </div>
+
+                        <div class="tab-pane fade @(activeTab == "password" ? "show active" : "")" id="passwordPane" role="tabpanel">
+                            @if (TempData["PasswordSuccess"] != null)
+                            {
+                                <div class="alert alert-success small border-0 rounded-3" style="background-color: rgba(16, 185, 129, 0.1); color: #10b981;">✅ @TempData["PasswordSuccess"]</div>
+                            }
+
+                            <form asp-action="ChangePassword" method="post">
+                                <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                                <div class="mb-4">
+                                    <label asp-for="CurrentPassword" class="form-label text-muted small fw-bold text-uppercase">Поточний пароль</label>
+                                    <input asp-for="CurrentPassword" class="form-control form-control-lg shadow-none" style="background-color: var(--background); border-color: var(--border-color); color: var(--text-main);" required />
+                                    <span asp-validation-for="CurrentPassword" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label asp-for="NewPassword" class="form-label text-muted small fw-bold text-uppercase">Новий пароль</label>
+                                    <input asp-for="NewPassword" class="form-control form-control-lg shadow-none" style="background-color: var(--background); border-color: var(--border-color); color: var(--text-main);" required />
+                                    <span asp-validation-for="NewPassword" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-5">
+                                    <label asp-for="ConfirmPassword" class="form-label text-muted small fw-bold text-uppercase">Підтвердження нового пароля</label>
+                                    <input asp-for="ConfirmPassword" class="form-control form-control-lg shadow-none" style="background-color: var(--background); border-color: var(--border-color); color: var(--text-main);" required />
+                                    <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                                </div>
+
+                                <button type="submit" class="btn btn-warning fw-bold text-dark px-5 py-2 rounded-3 border-0 shadow-sm">Оновити пароль</button>
+                            </form>
+                        </div>
+
+                        <div class="tab-pane fade" id="statsPane" role="tabpanel">
+                            <h5 class="mb-4 text-white fw-bold">Історія виконаних тестів</h5>
+
+                            <div class="table-responsive">
+                                <table class="table align-middle" style="--bs-table-bg: transparent; --bs-table-color: var(--text-main); --bs-table-border-color: var(--border-color);">
+                                    <thead style="background-color: rgba(255,255,255,0.02);">
+                                        <tr>
+                                            <th class="text-uppercase small text-muted px-3">Назва тесту</th>
+                                            <th class="text-uppercase small text-muted">Дата завершення</th>
+                                            <th class="text-center text-uppercase small text-muted">Оцінка</th>
+                                            <th class="text-end text-uppercase small text-muted px-3">Дії</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (!history.Any())
+                                        {
+                                            <tr>
+                                                <td colspan="4" class="text-center py-5" style="color: var(--text-muted);">Ви ще не пройшли жодного тесту до кінця.</td>
+                                            </tr>
+                                        }
+                                        else
+                                        {
+                                            foreach (var item in history)
+                                            {
+                                                double maxPts = item.Answers?.Sum(a => a.Question?.Points ?? 0) ?? 0;
+                                                double earned = item.Answers?.Sum(a => a.AwardedPoints) ?? 0;
+                                                string badgeClass = item.FinalScore >= 75 ? "badge-soft-success" :
+                                                                   (item.FinalScore >= 50 ? "bg-warning text-dark" : "badge-soft-danger");
+
+                                                <tr class="table-hover" style="transition: background-color 0.3s;">
+                                                    <td class="fw-bold px-3 text-white">@item.Test?.Title</td>
+                                                    <td class="small" style="color: var(--text-muted);">@item.EndTime?.ToString("dd.MM.yyyy HH:mm")</td>
+
+                                                    <td class="text-center">
+                                                        <span class="badge @badgeClass fs-6 rounded-pill px-3 shadow-sm">
+                                                            @earned / @maxPts балів
+                                                        </span>
+                                                    </td>
+
+                                                    <td class="text-end px-3">
+                                                        @if (item.Test != null && item.Test.ShowAnswersOnFinish)
+                                                        {
+                                                            <a asp-controller="Student" asp-action="FinishTest" asp-route-attemptId="@item.Id" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                                                Переглянути
+                                                            </a>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge rounded-pill px-3 py-2" style="background-color: rgba(255,255,255,0.05); color: var(--text-muted);" title="Викладач приховав результати для цього тесту">
+                                                                🔒 Приховано
+                                                            </span>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

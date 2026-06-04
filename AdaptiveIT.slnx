@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="AdaptiveIT.Tests/AdaptiveIT.Tests.csproj" Id="46b8dc2a-5821-45a4-bb8a-b66b6a0bcaa8" />
+  <Project Path="AdaptiveIT/AdaptiveIT.csproj" />
+</Solution>

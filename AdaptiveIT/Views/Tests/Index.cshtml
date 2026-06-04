@@ -1,0 +1,74 @@
+﻿@model IEnumerable<AdaptiveIT.Models.Test>
+
+@{
+    ViewData["Title"] = "Панель викладача";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 mt-4 animate-fade-up gap-3">
+    <div>
+        <h2 class="fw-bold text-white mb-1">Керування тестами</h2>
+        <p class="mb-0" style="color: var(--text-muted);">Створюйте тести, додавайте питання та аналізуйте статистику.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary-modern px-4 py-2 shadow-sm d-flex align-items-center gap-2">
+        <span>Створити новий тест</span> <span>➕</span>
+    </a>
+</div>
+
+<div class="card card-modern border-0 animate-fade-up delay-100">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0" style="--bs-table-bg: transparent; --bs-table-color: var(--text-main); --bs-table-border-color: var(--border-color); --bs-table-hover-bg: rgba(255,255,255,0.02);">
+                <thead style="background-color: rgba(255,255,255,0.02);">
+                    <tr>
+                        <th class="text-uppercase small text-muted px-4 py-3">Назва тесту</th>
+                        <th class="text-uppercase small text-muted py-3">Спроб</th>
+                        <th class="text-uppercase small text-muted py-3">Тип доступу</th>
+                        <th class="text-uppercase small text-muted text-end px-4 py-3">Дії</th>
+                    </tr>
+                </thead>
+                <tbody class="table-group-divider" style="border-top-color: var(--border-color);">
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center py-5" style="color: var(--text-muted);">
+                                <div class="fs-1 mb-3">📝</div>
+                                Ви ще не створили жодного тесту. Натисніть кнопку вище, щоб розпочати.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr class="table-hover">
+                                <td class="px-4 py-3">
+                                    <div class="fw-bold text-white fs-6">@item.Title</div>
+                                    <div class="small text-truncate" style="color: var(--text-muted); max-width: 300px;" title="@item.Description">
+                                        @(string.IsNullOrEmpty(item.Description) ? "Без опису" : item.Description)
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge" style="background-color: var(--background); border: 1px solid var(--border-color); color: var(--text-main);">@item.MaxAttempts</span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-soft-primary px-3 py-2 rounded-pill">@item.AccessType</span>
+                                </td>
+                                <td class="text-end px-4 py-3">
+                                    <div class="btn-group shadow-sm rounded-3">
+                                        <a asp-controller="Questions" asp-action="Index" asp-route-testId="@item.Id" class="btn btn-sm btn-outline-success" style="border-color: var(--border-color);">Питання</a>
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-light" style="border-color: var(--border-color); color: var(--text-muted);">Налаштування</a>
+                                        <a asp-action="Statistics" asp-route-id="@item.Id" class="btn btn-sm" style="background-color: rgba(99, 102, 241, 0.15); color: #818cf8; border-color: var(--border-color);">Аналітика</a>
+                                    </div>
+
+                                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline ms-2" onsubmit="return confirm('Ви впевнені, що хочете видалити цей тест? Усі питання та результати студентів також будуть видалені назавжди!');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-3" style="border-color: transparent;">🗑️</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

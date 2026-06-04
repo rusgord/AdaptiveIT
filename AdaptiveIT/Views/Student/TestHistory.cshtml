@@ -1,0 +1,68 @@
+﻿@model IEnumerable<AdaptiveIT.Models.TestAttempt>
+
+@{
+    ViewData["Title"] = "Історія спроб";
+    int attemptNumber = Model.Count();
+}
+
+<div class="container mt-4 mb-5 animate-fade-up">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <a asp-action="Index" class="btn btn-sm btn-outline-secondary mb-2 rounded-pill px-3">← До кабінету</a>
+            <h2 class="fw-bold text-white mb-0">Історія спроб</h2>
+            <p style="color: var(--text-muted);">Тест: "@ViewBag.TestTitle"</p>
+        </div>
+    </div>
+
+    <div class="card card-modern border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0" style="--bs-table-bg: transparent; --bs-table-color: var(--text-main); --bs-table-border-color: var(--border-color);">
+                    <thead style="background-color: rgba(255,255,255,0.02);">
+                        <tr>
+                            <th class="px-4 py-3 text-muted small text-uppercase">Спроба</th>
+                            <th class="py-3 text-muted small text-uppercase">Дата складання</th>
+                            <th class="py-3 text-muted small text-uppercase text-center">Результат</th>
+                            <th class="text-end px-4 py-3 text-muted small text-uppercase">Дії</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr><td colspan="4" class="text-center py-5 text-muted">Ви ще не завершили жодної спроби.</td></tr>
+                        }
+                        else
+                        {
+                            foreach (var attempt in Model)
+                            {
+                                double maxPts = attempt.Answers?.Sum(a => a.Question?.Points ?? 0) ?? 0;
+                                double earned = attempt.Answers?.Sum(a => a.AwardedPoints) ?? 0;
+                                string badgeClass = attempt.FinalScore >= 75 ? "badge-soft-success" : (attempt.FinalScore >= 50 ? "bg-warning text-dark" : "badge-soft-danger");
+
+                                <tr class="table-hover">
+                                    <td class="px-4 py-3 fw-bold text-white">Спроба #@(attemptNumber--)</td>
+                                    <td style="color: var(--text-muted);">@attempt.EndTime?.ToString("dd.MM.yyyy HH:mm")</td>
+                                    <td class="text-center">
+                                        <span class="badge @badgeClass rounded-pill px-3 py-2">
+                                            @earned / @maxPts балів
+                                        </span>
+                                    </td>
+                                    <td class="text-end px-4">
+                                        @if (ViewBag.ShowAnswers)
+                                        {
+                                            <a asp-action="FinishTest" asp-route-attemptId="@attempt.Id" class="btn btn-sm btn-outline-info rounded-pill px-3">Детально</a>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge rounded-pill px-3 py-2" style="background-color: rgba(255,255,255,0.05); color: var(--text-muted);">🔒 Приховано</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

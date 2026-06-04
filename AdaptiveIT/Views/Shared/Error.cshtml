@@ -1,0 +1,41 @@
+﻿@model AdaptiveIT.Models.ViewModels.ErrorViewModel
+
+@{
+    ViewData["Title"] = "Помилка";
+}
+
+<div class="container mt-5 mb-5 d-flex justify-content-center align-items-center" style="min-height: 60vh;">
+    <div class="card card-modern border-0 text-center p-4 p-md-5 animate-fade-up shadow-lg" style="max-width: 600px; width: 100%;">
+        <div class="mb-4 animate-fade-up delay-100" style="font-size: 5rem; filter: drop-shadow(0 10px 15px rgba(239, 68, 68, 0.2));">
+            🚧
+        </div>
+        <h2 class="fw-bold text-white mb-3 animate-fade-up delay-100">Упс! Щось пішло не так.</h2>
+        <p class="mb-4 animate-fade-up delay-200" style="color: var(--text-muted); font-size: 1.1rem;">
+            На жаль, під час обробки вашого запиту сталася непередбачувана помилка. Ми вже працюємо над її вирішенням.
+        </p>
+
+        @if (Model.ShowRequestId)
+        {
+            <div class="alert mb-4 text-start rounded-3 animate-fade-up delay-200" style="background-color: rgba(255,255,255,0.02); border: 1px dashed var(--border-color);">
+                <span class="small text-uppercase fw-bold d-block mb-1" style="color: var(--text-muted); letter-spacing: 1px;">Request ID:</span>
+                <code class="fs-6 p-2 rounded" style="background-color: var(--background); color: var(--primary); display: block; word-break: break-all; border: 1px solid rgba(255,255,255,0.05);">
+                    @Model.RequestId
+                </code>
+            </div>
+        }
+
+        <div class="animate-fade-up delay-300">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-primary-modern btn-lg px-5 py-3 shadow-sm rounded-pill">
+                Повернутися на головну
+            </a>
+        </div>
+        <div class="text-start mt-5 pt-4 border-top animate-fade-up delay-300" style="border-color: rgba(255,255,255,0.05) !important;">
+            <p class="small text-uppercase fw-bold mb-2" style="color: var(--text-muted);">🛠 Режим розробника (Development Mode)</p>
+            <p class="small mb-0" style="color: var(--text-muted); font-size: 0.8rem; line-height: 1.6;">
+                Перемикання на середовище <strong class="text-white">Development</strong> відобразить більше детальної інформації про помилку.
+                <span class="text-danger">Не використовуйте це у продакшені!</span> Це може призвести до витоку конфіденційних даних.
+                Для локального налагодження встановіть змінну середовища <strong>ASPNETCORE_ENVIRONMENT</strong> у значення <strong>Development</strong> та перезапустіть програму.
+            </p>
+        </div>
+    </div>
+</div>

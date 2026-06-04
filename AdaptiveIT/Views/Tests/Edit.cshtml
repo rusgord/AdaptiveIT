@@ -1,0 +1,189 @@
+﻿@model AdaptiveIT.Models.Test
+
+@{
+    ViewData["Title"] = "Редагування тесту";
+}
+
+<div class="row mt-4 mb-5 animate-fade-up">
+    <div class="col-md-9 mx-auto">
+        <div class="card card-modern border-0">
+            <div class="card-header bg-transparent border-0 pt-4 pb-0 px-4">
+                <h4 class="mb-0 fw-bold text-white">⚙️ Редагування тесту</h4>
+                <hr class="mt-4 mb-0" style="border-color: var(--border-color);" />
+            </div>
+            <div class="card-body p-4 p-md-5">
+                <form asp-action="Edit">
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="TeacherId" />
+
+                    <div class="mb-4">
+                        <label asp-for="Title" class="form-label text-muted small fw-bold text-uppercase">Назва тесту</label>
+                        <input asp-for="Title" class="form-control form-control-lg shadow-none" style="background-color: var(--background); border-color: var(--border-color); color: var(--text-main);" placeholder="Наприклад: Основи C# та .NET" />
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-5">
+                        <label asp-for="Description" class="form-label text-muted small fw-bold text-uppercase">Опис тесту</label>
+                        <textarea asp-for="Description" class="form-control shadow-none" rows="3" style="background-color: var(--background); border-color: var(--border-color); color: var(--text-main);" placeholder="Короткий опис для студентів..."></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row g-4 mb-5">
+                        <div class="col-md-6">
+                            <label asp-for="MaxAttempts" class="form-label text-muted small fw-bold text-uppercase">Кількість спроб</label>
+                            <input asp-for="MaxAttempts" class="form-control shadow-none" type="number" min="1" style="background-color: var(--background); border-color: var(--border-color); color: var(--text-main);" />
+                            <span asp-validation-for="MaxAttempts" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="AccessType" class="form-label text-muted small fw-bold text-uppercase">Тип доступу</label>
+                            <select asp-for="AccessType" asp-items="Html.GetEnumSelectList<AdaptiveIT.Models.AccessType>()" class="form-select shadow-none" style="background-color: var(--background); border-color: var(--border-color); color: var(--text-main);"></select>
+                            <span asp-validation-for="AccessType" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-12" id="groupsBlock" style="display:none;">
+                            <label class="form-label fw-bold text-primary">Оберіть групи для доступу</label>
+                            <select name="selectedGroups" class="form-select shadow-none" multiple size="4" style="background-color: var(--background); border-color: var(--border-color); color: var(--text-main);">
+                                @if (ViewBag.Groups != null)
+                                {
+                                    var selectedGrps = ViewBag.SelectedGroups != null ? (List<int>)ViewBag.SelectedGroups : new List<int>();
+                                    foreach (var g in ViewBag.Groups)
+                                    {
+                                        if (selectedGrps.Contains(g.Id))
+                                        {
+                                            <option value="@g.Id" selected>@g.Name</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@g.Id">@g.Name</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                            <small style="color: var(--text-muted);">Утримуйте Ctrl для вибору декількох груп.</small>
+                        </div>
+
+                        <div class="col-md-12" id="codeBlock" style="display:none;">
+                            <label class="form-label fw-bold" style="color: #38bdf8;">Код доступу до тесту</label>
+                            <input asp-for="AccessCode" class="form-control shadow-none" style="background-color: var(--background); border-color: var(--border-color); color: var(--text-main);" placeholder="Наприклад: IT-2026-X" />
+                            <small style="color: var(--text-muted);">Повідомте цей код студентам.</small>
+                        </div>
+
+                        <div class="col-md-12" id="studentsBlock" style="display:none;">
+                            <label class="form-label fw-bold" style="color: #10b981;">Оберіть студентів для доступу</label>
+                            <select name="selectedStudents" class="form-select shadow-none" multiple size="5" style="background-color: var(--background); border-color: var(--border-color); color: var(--text-main);">
+                                @if (ViewBag.Students != null)
+                                {
+                                    var selectedStds = ViewBag.SelectedStudents != null ? (List<string>)ViewBag.SelectedStudents : new List<string>();
+                                    foreach (var s in ViewBag.Students)
+                                    {
+                                        if (selectedStds.Contains(s.Id))
+                                        {
+                                            <option value="@s.Id" selected>@s.FullName (@s.Email)</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@s.Id">@s.FullName (@s.Email)</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <h5 class="mb-4 text-white">⏱ Обмеження та дозволи</h5>
+                    <div class="p-4 rounded-3 mb-5" style="background-color: var(--background); border: 1px solid var(--border-color);">
+                        <div class="form-check form-switch mb-4">
+                            <input asp-for="ShowAnswersOnFinish" class="form-check-input shadow-none" type="checkbox" role="switch">
+                            <label asp-for="ShowAnswersOnFinish" class="form-check-label fw-bold ms-2 text-white">Дозволити студенту бачити свої помилки після завершення</label>
+                        </div>
+
+                        <div class="form-check form-switch mb-3">
+                            <input asp-for="HasTimeLimit" class="form-check-input shadow-none" type="checkbox" role="switch" onchange="toggleTimeLimit(this)">
+                            <label asp-for="HasTimeLimit" class="form-check-label fw-bold ms-2 text-white">Увімкнути обмеження часу</label>
+                        </div>
+                        <div id="timeLimitBlock" class="mb-4 ps-5" style="@(Model?.HasTimeLimit == true ? "" : "display:none;")">
+                            <label class="form-label text-muted small">Час на проходження (у хвилинах)</label>
+                            <input asp-for="TimeLimitMinutes" class="form-control shadow-none w-50" type="number" min="1" style="background-color: var(--surface); border-color: var(--border-color); color: var(--text-main);" />
+                        </div>
+
+                        <div class="form-check form-switch mb-3">
+                            <input asp-for="HasDateLimit" class="form-check-input shadow-none" type="checkbox" role="switch" onchange="toggleDateLimit(this)">
+                            <label asp-for="HasDateLimit" class="form-check-label fw-bold ms-2 text-white">Обмежити доступ за датою</label>
+                        </div>
+                        <div id="dateLimitBlock" class="row g-2 ps-5" style="@(Model?.HasDateLimit == true ? "" : "display:none;")">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small">Початок доступу</label>
+                                <input asp-for="StartDate" class="form-control shadow-none" type="datetime-local" style="background-color: var(--surface); border-color: var(--border-color); color: var(--text-main);" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small">Кінець доступу</label>
+                                <input asp-for="EndDate" class="form-control shadow-none" type="datetime-local" style="background-color: var(--surface); border-color: var(--border-color); color: var(--text-main);" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5 class="mb-4 text-white">🧠 Логіка генерації питань</h5>
+                    <div class="p-4 rounded-3 mb-5" style="background-color: var(--background); border: 1px solid var(--border-color);">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold text-uppercase">Питань на одну спробу</label>
+                                <input asp-for="QuestionsPerAttempt" class="form-control shadow-none" type="number" min="1" placeholder="Всі" style="background-color: var(--surface); border-color: var(--border-color); color: var(--text-main);" />
+                                <small style="color: var(--text-muted);">Залишіть пустим, щоб видати всі питання бази.</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold text-uppercase">Режим складності</label>
+                                <select asp-for="IsAdaptive" class="form-select shadow-none" id="adaptiveSelect" onchange="toggleShuffleQuestions()" style="background-color: var(--surface); border-color: var(--border-color); color: var(--text-main);">
+                                    <option value="true">Адаптивний (залежить від відповідей)</option>
+                                    <option value="false">Стандартний (випадкові / по порядку)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6" id="shuffleQuestionsBlock" style="display: none;">
+                                <div class="form-check form-switch mt-2">
+                                    <input asp-for="ShuffleQuestions" class="form-check-input shadow-none" type="checkbox" role="switch">
+                                    <label class="form-label fw-bold ms-2 text-white">Питання у випадковому порядку</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch mt-2">
+                                    <input asp-for="ShuffleAnswers" class="form-check-input shadow-none" type="checkbox" role="switch">
+                                    <label class="form-label fw-bold ms-2 text-white">Перемішувати варіанти (А, Б, В...)</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4 border-top pt-4" style="border-color: var(--border-color) !important;">
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4">Скасувати</a>
+                        <button type="submit" class="btn btn-success fw-bold px-5 border-0" style="background-color: #10b981;">Зберегти зміни 💾</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        function toggleTimeLimit(c) { document.getElementById('timeLimitBlock').style.display = c.checked ? 'block' : 'none'; }
+        function toggleDateLimit(c) { document.getElementById('dateLimitBlock').style.display = c.checked ? 'flex' : 'none'; }
+        function toggleAccessBlocks() {
+            var val = document.getElementById('AccessType').value;
+            document.getElementById('groupsBlock').style.display = (val == '1' || val == 'ByGroup') ? 'block' : 'none';
+            document.getElementById('studentsBlock').style.display = (val == '2' || val == 'ByStudentList') ? 'block' : 'none';
+            document.getElementById('codeBlock').style.display = (val == '3' || val == 'ByCode') ? 'block' : 'none';
+        }
+        function toggleShuffleQuestions() {
+            document.getElementById('shuffleQuestionsBlock').style.display = (document.getElementById('adaptiveSelect').value == 'false') ? 'block' : 'none';
+        }
+        document.getElementById('AccessType').addEventListener('change', toggleAccessBlocks);
+
+        toggleShuffleQuestions();
+        toggleAccessBlocks();
+    </script>
+}

@@ -1,0 +1,131 @@
+﻿@model IEnumerable<AdaptiveIT.Models.ViewModels.StudentTestListViewModel>
+
+@{
+    ViewData["Title"] = "Особистий кабінет";
+    int animationDelay = 100;
+}
+
+<div class="container mt-4">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 animate-fade-up" style="background-color: #065f46; color: #d1fae5;" role="alert">
+            ✅ @TempData["SuccessMessage"]
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3 animate-fade-up" style="background-color: #7f1d1d; color: #fee2e2;" role="alert">
+            ❌ @TempData["ErrorMessage"]
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-5 gap-3 animate-fade-up">
+        <div>
+            <h2 class="fw-bold mb-1">Особистий кабінет</h2>
+            <p class="text-muted mb-0">Оберіть тест із списку або приєднайтеся за кодом викладача.</p>
+        </div>
+
+        <div class="inline-code-form p-1 shadow-sm" style="min-width: 320px;">
+            <form asp-action="JoinByCode" method="post" class="m-0">
+                <div class="input-group">
+                    <span class="input-group-text border-0 bg-transparent fs-5 text-muted">🔑</span>
+                    <input type="text" name="accessCode" class="form-control border-0 bg-transparent shadow-none" placeholder="Код доступу..." required>
+                    <button class="btn btn-primary-modern rounded-2 fw-bold px-3 py-2" type="submit">Додати</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        @if (!Model.Any())
+        {
+            <div class="col-12 text-center py-5 animate-fade-up delay-200">
+                <div class="p-5 rounded-3 shadow-sm" style="background-color: var(--surface); border: 1px dashed var(--border-color);">
+                    <div class="fs-1 mb-3">📭</div>
+                    <h4>Наразі у вас немає доступних тестів</h4>
+                    <p class="text-muted">Введіть код доступу вище, щоб приєднатися до тестування.</p>
+                </div>
+            </div>
+        }
+        else
+        {
+            @foreach (var test in Model)
+            {
+                <div class="col-md-6 col-lg-4 animate-fade-up" style="animation-delay: @(animationDelay)ms;">
+                    <div class="card card-modern h-100 d-flex flex-column p-2">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title fw-bold mb-2">@test.Title</h5>
+                            <p class="card-text text-muted small flex-grow-1">@test.Description</p>
+
+                            <div class="mb-4 mt-3">
+                                <div class="d-flex align-items-center mb-3">
+                                    <span class="badge badge-soft-primary px-2 py-1 rounded-pill me-2">⏱ @test.TimeLimitMessage</span>
+                                    @if (!string.IsNullOrEmpty(test.DateLimitMessage))
+                                    {
+                                        <span class="badge badge-soft-danger px-2 py-1 rounded-pill">📅 @test.DateLimitMessage</span>
+                                    }
+                                </div>
+
+                                <div class="d-flex justify-content-between small text-muted border-bottom border-secondary pb-2 mb-2">
+                                    <span>Спроби:</span>
+                                    <span class="fw-bold text-white">@test.AttemptsUsed / @test.MaxAttempts</span>
+                                </div>
+                                <div class="d-flex justify-content-between small text-muted">
+                                    <span>Найкращий результат:</span>
+                                    <span class="fw-bold @((test.BestScore ?? 0) >= 50 ? "text-success" : "text-white")">
+                                        @(test.BestAwardedPoints.HasValue ? $"{test.BestAwardedPoints} / {test.BestMaxPoints} балів" : "—")
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="mt-auto d-flex flex-column gap-2">
+                                @if (!test.IsAvailableByDate)
+                                {
+                                    <button class="btn btn-secondary w-100 fw-bold opacity-50" disabled>🔒 Недоступно за часом</button>
+                                }
+                                else if (test.UnfinishedAttemptId.HasValue)
+                                {
+                                    <a asp-action="TakeTest" asp-route-attemptId="@test.UnfinishedAttemptId.Value" class="btn btn-warning w-100 fw-bold text-dark shadow-sm py-2">
+                                        Продовжити тестування 🔄
+                                    </a>
+                                }
+                                else if (test.AttemptsLeft > 0)
+                                {
+                                    <form asp-action="StartTest" method="post" class="w-100">
+                                        <input type="hidden" name="testId" value="@test.TestId" />
+                                        <button type="submit" class="btn btn-primary-modern w-100 py-2">
+                                            Почати (Залишилось: @test.AttemptsLeft)
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <button class="btn w-100 fw-bold" style="background-color: rgba(239, 68, 68, 0.2); color: #f87171;" disabled>❌ Спроби вичерпано</button>
+                                }
+
+                                @if (test.IsCompleted && test.BestAttemptId.HasValue)
+                                {
+                                    @if (test.ShowAnswersOnFinish)
+                                    {
+                                        <a asp-action="TestHistory" asp-route-testId="@test.TestId" class="btn btn-outline-info w-100 py-2 rounded-2 mt-1">
+                                            🕒 Історія спроб (@test.AttemptsUsed)
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-center small mt-2 py-1 rounded-2" style="background-color: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px dashed rgba(255,255,255,0.1);">
+                                            🔒 Викладач приховав результати
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                animationDelay += 100;
+            }
+        }
+    </div>
+</div>

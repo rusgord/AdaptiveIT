@@ -1,0 +1,80 @@
+﻿@model AdaptiveIT.Models.Question
+
+@{
+    ViewData["Title"] = "Нове питання";
+}
+
+<div class="row mt-4 mb-5 animate-fade-up">
+    <div class="col-md-9 mx-auto">
+        <div class="card card-modern border-0">
+            <div class="card-header bg-transparent border-0 pt-4 pb-0 px-4">
+                <h4 class="mb-0 fw-bold text-white">✨ Створення питання</h4>
+                <hr class="mt-4 mb-0" style="border-color: var(--border-color);" />
+            </div>
+            <div class="card-body p-4 p-md-5">
+                <form asp-action="Create" enctype="multipart/form-data">
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                    <input type="hidden" asp-for="TestId" />
+
+                    <div class="mb-5">
+                        <label asp-for="Text" class="form-label text-muted small fw-bold text-uppercase">Текст питання</label>
+                        <textarea asp-for="Text" class="form-control form-control-lg shadow-none" rows="4" style="background-color: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); color: var(--text-main);" placeholder="Введіть ваше питання тут..."></textarea>
+                        <span asp-validation-for="Text" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Зображення до питання (необов'язково)</label>
+
+                        <div id="dropZone" class="p-4 text-center rounded-3 position-relative"
+                             style="border: 2px dashed var(--border-color); background-color: rgba(255,255,255,0.01); cursor: pointer; transition: all 0.3s;">
+
+                            <div id="previewContainer" class="d-none mb-3">
+                                <img id="imagePreview" src="" class="img-fluid rounded shadow-sm" style="max-height: 200px; object-fit: contain;" />
+                            </div>
+
+                            <div id="uploadPlaceholder">
+                                <div class="fs-1 mb-2">📸</div>
+                                <p class="mb-1 text-white fw-bold">Натисніть, перетягніть або вставте (Ctrl+V)</p>
+                                <small style="color: var(--text-muted);">Підтримуються формати JPG, PNG</small>
+                            </div>
+
+                            <input type="file" name="uploadFile" id="uploadFile" class="d-none" accept="image/*" />
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mb-5">
+                        <div class="col-md-12">
+                            <label asp-for="Type" class="form-label text-muted small fw-bold text-uppercase">Тип питання</label>
+                            <select asp-for="Type" asp-items="Html.GetEnumSelectList<AdaptiveIT.Models.QuestionType>()" class="form-select form-select-lg shadow-none" style="background-color: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); color: var(--text-main);"></select>
+                            <span asp-validation-for="Type" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="DifficultyLevel" class="form-label text-muted small fw-bold text-uppercase">Рівень складності (1-10)</label>
+                            <input asp-for="DifficultyLevel" class="form-control form-control-lg shadow-none" type="number" min="1" max="10" style="background-color: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); color: var(--text-main);" />
+                            <small style="color: var(--text-muted);">Використовується для адаптивного алгоритму.</small>
+                            <span asp-validation-for="DifficultyLevel" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Points" class="form-label text-muted small fw-bold text-uppercase">Макс. балів</label>
+                            <input asp-for="Points" class="form-control form-control-lg shadow-none" type="number" min="1" style="background-color: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); color: var(--text-main);" />
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4 border-top pt-4" style="border-color: var(--border-color) !important;">
+                        <a asp-action="Index" asp-route-testId="@Model.TestId" class="btn btn-outline-secondary px-4">Скасувати</a>
+                        <button type="submit" class="btn btn-primary-modern px-5 py-2 fw-bold">Створити питання ➕</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

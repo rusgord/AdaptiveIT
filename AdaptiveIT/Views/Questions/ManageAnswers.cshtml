@@ -1,0 +1,357 @@
+﻿@model AdaptiveIT.Models.Question
+@using AdaptiveIT.Models
+
+@{
+    ViewData["Title"] = "Налаштування відповідей";
+}
+
+<style>
+    #formCard:hover {
+        transform: translateY(0) !important;
+    }
+</style>
+
+<div class="container mt-4 mb-5 animate-fade-up">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <a asp-action="Index" asp-route-testId="@Model.TestId" class="btn btn-sm btn-outline-secondary mb-3 rounded-pill px-3">← Назад до списку питань</a>
+            <h3 class="fw-bold text-white mb-1">Керування відповідями</h3>
+            <p style="color: var(--text-muted);" class="mb-2">Питання: "@Model.Text"</p>
+            <span class="badge badge-soft-primary px-3 py-2 rounded-pill fs-6">Тип: @Model.Type</span>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-5">
+            <div class="card card-modern border-0 mb-4" id="formCard" style="border: 1px solid var(--border-color) !important; transition: border-color 0.3s, box-shadow 0.3s;">
+                <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center pt-4 px-4">
+                    <h5 class="mb-0 fw-bold text-white id-form-title" id="formTitle">Додати варіант</h5>
+                    <button type="button" class="btn btn-sm btn-outline-danger d-none rounded-pill px-3" id="btnCancelEdit" onclick="resetForm()">Скасувати</button>
+                </div>
+                <div class="card-body p-4">
+
+                    @if (Model.Type == QuestionType.SingleChoice || Model.Type == QuestionType.MultipleChoice || Model.Type == QuestionType.ShortAnswer || Model.Type == QuestionType.Ordering)
+                    {
+                        <form asp-action="SaveAnswerOption" method="post" id="mainForm">
+                            <input type="hidden" name="Id" id="entityId" value="0" />
+                            <input type="hidden" name="QuestionId" value="@Model.Id" />
+
+                            @if (Model.Type == QuestionType.ShortAnswer)
+                            {
+                                <div class="alert small mb-4 border-0 rounded-3" style="background-color: rgba(56, 189, 248, 0.1); color: #7dd3fc;">
+                                    💡 <b>Коротка відповідь:</b> Додайте всі можливі синоніми або альтернативні варіанти написання (наприклад: <i>var</i>, <i>let</i>). Обов'язково позначте їх галочкою <b>"ПРАВИЛЬНА"</b>.
+                                </div>
+                            }
+                            @if (Model.Type == QuestionType.Ordering)
+                            {
+                                <div class="alert small mb-4 border-0 rounded-3" style="background-color: rgba(245, 158, 11, 0.1); color: #fcd34d;">
+                                    💡 <b>Впорядкування (Ordering):</b> Додавайте елементи <b>в ПРАВИЛЬНОМУ порядку</b> (від першого до останнього). На тесті система автоматично перемішає їх.
+                                </div>
+                            }
+
+                            <div class="mb-4">
+                                <label class="form-label text-muted small fw-bold text-uppercase">Текст відповіді</label>
+                                <input type="text" name="Text" id="inputText" class="form-control form-control-lg shadow-none" required placeholder="Наприклад: int, string..." />
+                            </div>
+
+                            @if (Model.Type != QuestionType.Ordering)
+                            {
+                                <div class="form-check mb-4">
+                                    <input class="form-check-input shadow-none" type="checkbox" name="IsCorrect" value="true" id="isCorrectCheck" style="background-color: var(--background);">
+                                    <label class="form-check-label text-success fw-bold" for="isCorrectCheck">
+                                        Це ПРАВИЛЬНА відповідь
+                                    </label>
+                                </div>
+                            }
+
+                            <button type="submit" class="btn btn-primary-modern w-100 py-3 fw-bold shadow-sm" id="btnSubmit">Додати варіант</button>
+                        </form>
+                    }
+                    else if (Model.Type == QuestionType.TextMatch)
+                    {
+                        <form asp-action="SaveAnswerOption" method="post" id="mainForm">
+                            <input type="hidden" name="Id" id="entityId" value="0" />
+                            <input type="hidden" name="QuestionId" value="@Model.Id" />
+                            <input type="hidden" name="IsCorrect" value="true" />
+
+                            <div class="mb-4">
+                                <label class="form-label text-muted small fw-bold text-uppercase">Елемент 1 (Термін)</label>
+                                <input type="text" name="Text" id="inputText" class="form-control form-control-lg shadow-none" required placeholder="HTML" />
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label text-muted small fw-bold text-uppercase">Елемент 2 (Відповідність)</label>
+                                <input type="text" name="MatchTarget" id="inputMatchTarget" class="form-control form-control-lg shadow-none" required placeholder="Мова розмітки" />
+                            </div>
+
+                            <button type="submit" class="btn btn-primary-modern w-100 py-3 fw-bold shadow-sm" id="btnSubmit">Додати пару</button>
+                        </form>
+                    }
+                    else if (Model.Type == QuestionType.GraphicDragAndDrop)
+                    {
+                        if (string.IsNullOrEmpty(Model.ImageUrl))
+                        {
+                            <div class="alert mb-4 border-0 rounded-3 text-center" style="background-color: rgba(245, 158, 11, 0.1); color: #fcd34d;">
+                                <div class="fs-1 mb-2">🖼️</div>
+                                <h5 class="fw-bold">Бракує фонового зображення</h5>
+                                <p class="small mb-3">Для цього типу питання необхідно додати зображення, на якому будуть розміщуватись зони.</p>
+                                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning text-dark fw-bold px-4 rounded-pill">
+                                    Додати зображення у налаштуваннях
+                                </a>
+                            </div>
+                        }
+                        else
+                        {
+                            <form asp-action="SaveGraphicZone" method="post" id="mainForm">
+                                <input type="hidden" name="Id" id="entityId" value="0" />
+                                <input type="hidden" name="QuestionId" value="@Model.Id" />
+                                <input type="hidden" name="Width" id="inputWidth" value="15" />
+                                <input type="hidden" name="Height" id="inputHeight" value="10" />
+
+                                <div class="row g-3 mb-4">
+                                    <div class="col-6">
+                                        <label class="form-label text-muted small fw-bold text-uppercase">Позиція X (%)</label>
+                                        <input type="number" step="0.01" name="PositionX" id="inputX" class="form-control form-control-lg shadow-none" readonly required style="background-color: rgba(0,0,0,0.2) !important; color: var(--text-muted) !important;" />
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label text-muted small fw-bold text-uppercase">Позиція Y (%)</label>
+                                        <input type="number" step="0.01" name="PositionY" id="inputY" class="form-control form-control-lg shadow-none" readonly required style="background-color: rgba(0,0,0,0.2) !important; color: var(--text-muted) !important;" />
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label text-muted small fw-bold text-uppercase">Фрагмент (код/текст)</label>
+                                    <input type="text" name="CorrectFragment" id="inputFragment" class="form-control form-control-lg shadow-none" required placeholder="Наприклад: int x = 5;" />
+                                </div>
+
+                                <button type="submit" class="btn btn-primary-modern w-100 py-3 fw-bold shadow-sm" id="btnSubmit">Додати зону</button>
+                            </form>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7 animate-fade-up delay-100">
+
+            @if (Model.Type == QuestionType.GraphicDragAndDrop && !string.IsNullOrEmpty(Model.ImageUrl))
+            {
+                <div class="card card-modern border-0 mb-4 shadow-sm">
+                    <div class="card-header bg-transparent border-0 pt-4 px-4">
+                        <h6 class="mb-0 fw-bold text-white">Візуальний редактор зон <span class="text-muted small fw-normal">(Клікніть по фото для вибору позиції)</span></h6>
+                    </div>
+                    <div class="card-body text-center" style="user-select: none;">
+                        <div id="imageWrapper" class="d-inline-block position-relative rounded-3 p-2 shadow-lg" style="background-color: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                            <img src="@Model.ImageUrl" id="targetImage" class="img-fluid rounded" style="cursor: crosshair; max-height: 400px;" />
+
+                            @if (Model.GraphicMatchZones != null)
+                            {
+                                foreach (var zone in Model.GraphicMatchZones)
+                                {
+                                    <div class="graphic-zone-rect" id="zone-preview-@zone.Id"
+                                         style="position: absolute;
+                                        left: @zone.PositionX%;
+                                        top: @zone.PositionY%;
+                                        width: @zone.Width%;
+                                        height: @zone.Height%;
+                                        border: 2px dashed #6366f1;
+                                        background-color: rgba(99, 102, 241, 0.2);
+                                        transform: translate(-50%, -50%);
+                                        cursor: pointer;
+                                        backdrop-filter: blur(2px);
+                                        transition: border-color 0.2s;"
+                                         onclick="startEditZone(@zone.Id, @zone.PositionX, @zone.PositionY, '@zone.CorrectFragment', @zone.Width, @zone.Height)">
+                                        <span class="badge bg-dark position-absolute top-0 start-50 translate-middle small shadow-sm border border-secondary">
+                                            @zone.CorrectFragment
+                                        </span>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div class="card card-modern border-0">
+                <div class="card-header bg-transparent border-0 pt-4 pb-2 px-4">
+                    <h5 class="mb-0 fw-bold text-white">Існуючі елементи</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0" style="--bs-table-bg: transparent; --bs-table-color: var(--text-main); --bs-table-border-color: var(--border-color); --bs-table-hover-bg: rgba(255,255,255,0.02);">
+                            <thead style="background-color: rgba(255,255,255,0.02);">
+                                <tr>
+                                    <th class="px-4 py-3 text-muted small text-uppercase">Текст / Елемент</th>
+                                    <th class="py-3 text-muted small text-uppercase text-center">Статус</th>
+                                    <th class="text-end px-4 py-3 text-muted small text-uppercase">Дії</th>
+                                </tr>
+                            </thead>
+                            <tbody class="table-group-divider" style="border-top-color: var(--border-color);">
+                                @if (Model.Type == QuestionType.GraphicDragAndDrop)
+                                {
+                                    if (Model.GraphicMatchZones == null || !Model.GraphicMatchZones.Any())
+                                    {
+                                        <tr><td colspan="3" class="text-center text-muted py-5">Жодної графічної зони ще не додано.</td></tr>
+                                    }
+                                    else
+                                    {
+                                        foreach (var zone in Model.GraphicMatchZones)
+                                        {
+                                            <tr id="row-zone-@zone.Id" class="table-hover" style="transition: background-color 0.3s;">
+                                                <td class="px-4 py-3 align-middle">
+                                                    <strong class="text-white">@zone.CorrectFragment</strong>
+                                                    <br /><small class="text-muted">X: @zone.PositionX% | Y: @zone.PositionY%</small>
+                                                </td>
+                                                <td class="align-middle text-center">-</td>
+                                                <td class="align-middle text-end px-4 py-3">
+                                                    <button type="button" class="btn btn-sm btn-outline-light me-2 rounded-pill px-3" onclick="startEditZone(@zone.Id, @zone.PositionX, @zone.PositionY, '@zone.CorrectFragment', @zone.Width, @zone.Height)">✏️ Редагувати</button>
+                                                    <form asp-action="DeleteGraphicZone" method="post" class="d-inline" onsubmit="return confirm('Видалити зону?');">
+                                                        <input type="hidden" name="id" value="@zone.Id" />
+                                                        <input type="hidden" name="questionId" value="@Model.Id" />
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle border-0">🗑️</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    if (Model.AnswerOptions == null || !Model.AnswerOptions.Any())
+                                    {
+                                        <tr><td colspan="3" class="text-center text-muted py-5">Варіантів відповідей не знайдено.</td></tr>
+                                    }
+                                    else
+                                    {
+                                        foreach (var answer in Model.AnswerOptions)
+                                        {
+                                            <tr id="row-answer-@answer.Id" class="table-hover" style="transition: background-color 0.3s;">
+                                                <td class="px-4 py-3 align-middle">
+                                                    @if (Model.Type == QuestionType.TextMatch)
+                                                    {
+                                                        <span class="text-white">@answer.Text <i class="text-muted mx-2">→</i> <strong style="color: var(--primary);">@answer.MatchTarget</strong></span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-white">@answer.Text</span>
+                                                    }
+                                                </td>
+                                                <td class="align-middle text-center">
+                                                    @if (Model.Type != QuestionType.TextMatch && Model.Type != QuestionType.Ordering)
+                                                    {
+                                                        <span class="badge @(answer.IsCorrect ? "badge-soft-success" : "") px-3 py-2 rounded-pill" style="@(!answer.IsCorrect ? "background-color: rgba(255,255,255,0.05); color: var(--text-muted);" : "")">
+                                                            @(answer.IsCorrect ? "Правильна" : "Ні")
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">-</span>
+                                                    }
+                                                </td>
+                                                <td class="align-middle text-end px-4 py-3">
+                                                    <button type="button" class="btn btn-sm btn-outline-light me-2 rounded-pill px-3" onclick="startEditAnswer(@answer.Id, '@answer.Text', '@answer.IsCorrect.ToString().ToLower()', '@answer.MatchTarget')">✏️ Редагувати</button>
+                                                    <form asp-action="DeleteAnswerOption" method="post" class="d-inline" onsubmit="return confirm('Видалити цей варіант?');">
+                                                        <input type="hidden" name="id" value="@answer.Id" />
+                                                        <input type="hidden" name="questionId" value="@Model.Id" />
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle border-0">🗑️</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function startEditAnswer(id, text, isCorrect, matchTarget) {
+            document.getElementById('entityId').value = id;
+            document.getElementById('inputText').value = text;
+
+            const check = document.getElementById('isCorrectCheck');
+            if (check) check.checked = (isCorrect === 'true');
+
+            const target = document.getElementById('inputMatchTarget');
+            if (target) target.value = matchTarget;
+            document.getElementById('formCard').style.setProperty('border-color', '#f59e0b', 'important');
+            document.getElementById('formTitle').innerText = "Редагувати варіант";
+            document.getElementById('btnSubmit').className = "btn btn-warning fw-bold text-dark w-100 py-3 shadow-sm";
+            document.getElementById('btnSubmit').innerText = "Зберегти зміни 💾";
+            document.getElementById('btnCancelEdit').classList.remove('d-none');
+            document.querySelectorAll('tr').forEach(r => r.style.backgroundColor = 'transparent');
+            const targetRow = document.getElementById('row-answer-' + id);
+            if (targetRow) targetRow.style.backgroundColor = 'rgba(245, 158, 11, 0.15)';
+        }
+
+        function startEditZone(id, x, y, fragment, w, h) {
+            document.getElementById('entityId').value = id;
+            document.getElementById('inputX').value = x;
+            document.getElementById('inputY').value = y;
+            document.getElementById('inputFragment').value = fragment;
+            if(document.getElementById('inputWidth')) document.getElementById('inputWidth').value = w;
+            if(document.getElementById('inputHeight')) document.getElementById('inputHeight').value = h;
+            document.getElementById('formCard').style.setProperty('border-color', '#f59e0b', 'important');
+            document.getElementById('formTitle').innerText = "Редагувати зону";
+            document.getElementById('btnSubmit').className = "btn btn-warning fw-bold text-dark w-100 py-3 shadow-sm";
+            document.getElementById('btnSubmit').innerText = "Зберегти зміни 💾";
+            document.getElementById('btnCancelEdit').classList.remove('d-none');
+            document.querySelectorAll('.graphic-zone-rect').forEach(z => z.style.borderColor = '#6366f1');
+            document.querySelectorAll('tr').forEach(r => r.style.backgroundColor = 'transparent');
+            const activeZone = document.getElementById('zone-preview-' + id);
+            if (activeZone) activeZone.style.borderColor = '#f59e0b';
+
+            const activeRow = document.getElementById('row-zone-' + id);
+            if (activeRow) activeRow.style.backgroundColor = 'rgba(245, 158, 11, 0.15)';
+        }
+
+        function resetForm() {
+            document.getElementById('entityId').value = "0";
+            const mainForm = document.getElementById('mainForm');
+            if (mainForm) mainForm.reset();
+            document.getElementById('formCard').style.setProperty('border-color', 'var(--border-color)', 'important');
+            document.getElementById('formTitle').innerText = "Додати варіант";
+            document.getElementById('btnSubmit').className = "btn btn-primary-modern w-100 py-3 fw-bold shadow-sm";
+            document.getElementById('btnSubmit').innerText = "Додати";
+            document.getElementById('btnCancelEdit').classList.add('d-none');
+            document.querySelectorAll('tr').forEach(r => r.style.backgroundColor = 'transparent');
+            document.querySelectorAll('.graphic-zone-rect').forEach(z => z.style.borderColor = '#6366f1');
+            document.querySelectorAll('.temp-marker').forEach(e => e.remove());
+        }
+
+        const img = document.getElementById('targetImage');
+        if (img) {
+            img.addEventListener('click', function (e) {
+                const rect = e.target.getBoundingClientRect();
+                const xPercent = ((e.clientX - rect.left) / rect.width) * 100;
+                const yPercent = ((e.clientY - rect.top) / rect.height) * 100;
+
+                document.getElementById('inputX').value = xPercent.toFixed(2);
+                document.getElementById('inputY').value = yPercent.toFixed(2);
+
+                document.querySelectorAll('.temp-marker').forEach(e => e.remove());
+                const marker = document.createElement('div');
+                marker.className = 'temp-marker';
+                marker.style.position = 'absolute';
+                marker.style.left = xPercent + '%';
+                marker.style.top = yPercent + '%';
+                marker.style.width = '16px';
+                marker.style.height = '16px';
+                marker.style.backgroundColor = 'var(--primary)';
+                marker.style.borderRadius = '50%';
+                marker.style.transform = 'translate(-50%, -50%)';
+                marker.style.border = '3px solid #ffffff';
+                marker.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)';
+                marker.style.pointerEvents = 'none';
+                marker.style.transition = 'all 0.2s';
+                e.target.parentElement.appendChild(marker);
+            });
+        }
+    </script>
+}

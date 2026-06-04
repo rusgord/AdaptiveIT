@@ -1,0 +1,70 @@
+﻿@model IEnumerable<AdaptiveIT.Models.TestAttempt>
+
+@{
+    ViewData["Title"] = "Роботи на перевірку";
+}
+
+<div class="container mt-4 mb-5 animate-fade-up">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="fw-bold text-white mb-0">Роботи на перевірку 📝</h2>
+            <p style="color: var(--text-muted);">Список спроб, які очікують вашої ручної оцінки.</p>
+        </div>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">До списку тестів</a>
+        </div>
+    </div>
+
+    <div class="card card-modern border-0 shadow-lg">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0" style="--bs-table-bg: transparent; --bs-table-color: var(--text-main); --bs-table-border-color: var(--border-color);">
+                    <thead style="background-color: rgba(255,255,255,0.02);">
+                        <tr>
+                            <th class="px-4 py-3 text-muted small text-uppercase">Тест</th>
+                            <th class="py-3 text-muted small text-uppercase">Студент</th>
+                            <th class="py-3 text-muted small text-uppercase">Дата складання</th>
+                            <th class="text-end px-4 py-3 text-muted small text-uppercase">Дії</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="4" class="text-center py-5">
+                                    <div class="fs-1 mb-3">🎉</div>
+                                    <h5 class="text-white">Немає робіт для перевірки!</h5>
+                                    <p class="text-muted mb-0">Всі розгорнуті відповіді вже оцінені.</p>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var attempt in Model)
+                            {
+                                <tr class="table-hover" style="transition: background-color 0.3s;">
+                                    <td class="px-4 py-3 fw-bold text-white">@attempt.Test?.Title</td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="fs-5">👤</div>
+                                            <div>
+                                                <div class="fw-bold text-white">@attempt.Student?.FullName</div>
+                                                <div class="small" style="color: var(--text-muted);">@attempt.Student?.Email</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td style="color: var(--text-muted);">@attempt.EndTime?.ToString("dd.MM.yyyy HH:mm")</td>
+                                    <td class="text-end px-4">
+                                        <a asp-action="ReviewAttempt" asp-route-attemptId="@attempt.Id" class="btn btn-warning fw-bold text-dark rounded-pill px-4 py-2 shadow-sm">
+                                            Перевірити
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

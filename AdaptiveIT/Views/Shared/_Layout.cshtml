@@ -1,0 +1,93 @@
+﻿@inject Microsoft.AspNetCore.Identity.UserManager<AdaptiveIT.Models.ApplicationUser> UserManager
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - AdaptiveIT</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark navbar-glass py-3">
+            <div class="container">
+                <a class="navbar-brand fw-bold fs-4 d-flex align-items-center animate-fade-up" asp-area="" asp-controller="Home" asp-action="Index">
+                    <span style="color: var(--primary);">Adaptive</span><span class="text-white">IT</span>
+                </a>
+
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between animate-fade-up delay-100">
+                    <ul class="navbar-nav flex-grow-1 ms-4">
+                        <li class="nav-item"><a class="nav-link fw-medium" asp-controller="Home" asp-action="Index">Головна</a></li>
+
+                        @if (User.Identity!.IsAuthenticated)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link fw-bold" style="color: var(--primary);" asp-controller="Student" asp-action="Index">Мої тести</a>
+                            </li>
+                        }
+
+                        @if (User.IsInRole("Teacher") || User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item"><a class="nav-link fw-medium" asp-controller="Tests" asp-action="Index">Панель викладача</a></li>
+                            <li class="nav-item"><a class="nav-link fw-medium" asp-controller="Groups" asp-action="Index">Групи</a></li>
+                            <li class="nav-item"><a class="nav-link fw-medium" asp-controller="Tests" asp-action="PendingReviews">Роботи на перевірку</a></li>
+                        }
+                    </ul>
+
+                    <ul class="navbar-nav ms-auto align-items-center">
+                        @if (User.Identity!.IsAuthenticated)
+                        {
+                            var currentUser = await UserManager.GetUserAsync(User);
+                            <li class="nav-item me-3">
+                                <a class="nav-link fw-semibold d-flex align-items-center px-0" asp-controller="Profile" asp-action="Index">
+                                    <img src="@(currentUser?.AvatarUrl ?? "/uploads/avatars/default-avatar.png")"
+                                         class="rounded-circle me-2 border border-secondary"
+                                         style="width: 38px; height: 38px; object-fit: cover;"
+                                         alt="Avatar" />
+                                    <span>@(currentUser?.FullName ?? User.Identity.Name)</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <form class="form-inline" asp-controller="Account" asp-action="Logout" method="post">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-3">Вийти</button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item"><a class="nav-link fw-bold" asp-controller="Account" asp-action="Login">Увійти</a></li>
+                            <li class="nav-item"><a class="btn btn-primary-modern ms-2 px-4 py-2" asp-controller="Account" asp-action="Register">Реєстрація</a></li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container animate-fade-up delay-200">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="footer-dark">
+        <div class="container d-flex justify-content-between">
+            <span>&copy; 2026 - AdaptiveIT Learning Management System</span>
+            <div>
+                <a asp-area="" asp-controller="Home" asp-action="Privacy" class="me-3">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/image-uploader.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
