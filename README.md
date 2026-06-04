@@ -1,0 +1,2 @@
+# AdaptiveIT
+Diploma project
